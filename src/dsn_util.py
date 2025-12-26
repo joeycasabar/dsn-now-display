@@ -34,18 +34,26 @@ def get_ts_from_xml(filename):
         for timestamp in root.iter('timestamp'):
             timestamp = int(timestamp.text) / 1000.0
 
+        return timestamp
+
     except FileNotFoundError:
         print(f"Error: The file '{filename}' was not found.")
     except ET.ParseError:
         print(
             f"Error: Could not parse the XML in '{filename}'. Check file format.")
-    return timestamp
 
 
 def expand_name(abbr):
     missions = {
         "VGR1": "VOYAGER1",
         "VGR2": "VOYAGER2",
+        "STA": "STEREOA",
+        "CHDR": "CHANDRA",
+        "JNO": "JUNO",
+        "NHPC": "NEWHORIZONS",
+        "M01O": "MARSODYSSEY",
+        "M20": "PERSEVERANCE",
+        "MSL": "CURIOSITY",
         "MVN": "MAVEN",
         "ORX": "OSIRISREX"
     }
