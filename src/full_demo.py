@@ -11,6 +11,7 @@ import dsn_util
 
 filename = 'dsn.xml'
 
+PATTERN_HEIGHT = 64
 MATRIX_WIDTH = 32
 
 LINE_BRIGHTNESS = 64
@@ -20,7 +21,11 @@ UP_LINES = [
     (16, 8),
     (1, 16),
     (16, 24),
-    (1, 30)
+    (1, 32),
+    (16, 40),
+    (1, 48),
+    (16, 56),
+    (1, 64)
 ]
 
 DOWN_LINES = [
@@ -34,7 +39,17 @@ DOWN_LINES = [
     (4, 22),
     (12, 25),
     (4, 28),
-    (12, 32)
+    (12, 31),
+    (4, 34),
+    (12, 37),
+    (4, 40),
+    (12, 43),
+    (4, 46),
+    (12, 49),
+    (4, 52),
+    (12, 55),
+    (4, 58),
+    (12, 61)
 ]
 
 V_SPACING = 2
@@ -82,13 +97,28 @@ except IOError:
     font = ImageFont.load_default(size=8)
 
 text_color = (TEXT_BRIGHTNESS, TEXT_BRIGHTNESS, TEXT_BRIGHTNESS)
-line_color = (LINE_BRIGHTNESS, LINE_BRIGHTNESS, LINE_BRIGHTNESS)
 
 while True:
     for sc in curr_spacecraft:
+
+        show_downsignal = False
+        show_upsignal = False
+
         abbr = sc["abbr"]
         if abbr == "DSN" or abbr == 'DSS':
             continue
+
+        if 'downSignal' in sc:
+            if sc["downSignal"] == "true":
+                show_downsignal = True
+
+        if 'upSignal' in sc:
+            if sc["upSignal"] == "true":
+                show_upsignal = True
+
+        if show_downsignal == False and show_upsignal == False:
+            continue
+
         input_string = dsn_util.expand_name(abbr)
         text_content = '\n'.join(input_string)
 
@@ -117,31 +147,30 @@ while True:
                     text_y -= 1
                     next_text = time.time() + SLOW_DELAY
 
-        show_downsignal = False
-        show_upsignal = False
-
-        if 'downSignal' in sc:
-            if sc["downSignal"] == "true":
-                show_downsignal = True
-
-        if 'upSignal' in sc:
-            if sc["upSignal"] == "true":
-                show_upsignal = True
-
-        if show_downsignal == False and show_upsignal == False:
-            continue
+        matrix.Clear()
+        time.sleep(0.5)
 
         step = 0
 
-        for step in range(0, 65):
+        for step in range(0, 1+MATRIX_WIDTH+PATTERN_HEIGHT):
             # print(step)
+            if step < 16:
+                line_color = (step*4, step*4, step*4)
+            elif step > 81:
+                line_color = ((97-step)*4, (97-step)*4, (97-step)*4)
+            else:
+                line_color = (LINE_BRIGHTNESS,
+                              LINE_BRIGHTNESS, LINE_BRIGHTNESS)
             draw.rectangle((0, 0, 16, 32), fill='black')
-
-            draw.line([(x, y+(MATRIX_WIDTH-step))
-                       for (x, y) in DOWN_LINES], fill=line_color)
-
-            draw.line([(x, y-(MATRIX_WIDTH-step))
-                       for (x, y) in UP_LINES], fill=line_color)
+            if show_downsignal:
+                draw.line([(x, y-(PATTERN_HEIGHT-step))
+                           for (x, y) in DOWN_LINES], fill=line_color)
+            if show_upsignal:
+                draw.line([(x, y+(MATRIX_WIDTH-step))
+                           for (x, y) in UP_LINES], fill=line_color)
             rotated_image = image.rotate(270, expand=True)
             matrix.SetImage(rotated_image, unsafe=False)
             time.sleep(0.05)
+
+        matrix.Clear()
+        time.sleep(0.5)
