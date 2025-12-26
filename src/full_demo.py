@@ -11,6 +11,32 @@ import dsn_util
 
 filename = 'dsn.xml'
 
+MATRIX_WIDTH = 32
+
+LINE_BRIGHTNESS = 64
+
+UP_LINES = [
+    (1, 1),
+    (16, 8),
+    (1, 16),
+    (16, 24),
+    (1, 30)
+]
+
+DOWN_LINES = [
+    (12, 1),
+    (4, 4),
+    (12, 7),
+    (4, 10),
+    (12, 13),
+    (4, 16),
+    (12, 19),
+    (4, 22),
+    (12, 25),
+    (4, 28),
+    (12, 32)
+]
+
 V_SPACING = 2
 
 TEXT_XPOS = 9
@@ -56,6 +82,7 @@ except IOError:
     font = ImageFont.load_default(size=8)
 
 text_color = (TEXT_BRIGHTNESS, TEXT_BRIGHTNESS, TEXT_BRIGHTNESS)
+line_color = (LINE_BRIGHTNESS, LINE_BRIGHTNESS, LINE_BRIGHTNESS)
 
 while True:
     for sc in curr_spacecraft:
@@ -89,3 +116,32 @@ while True:
                 else:
                     text_y -= 1
                     next_text = time.time() + SLOW_DELAY
+
+        show_downsignal = False
+        show_upsignal = False
+
+        if 'downSignal' in sc:
+            if sc["downSignal"] == "true":
+                show_downsignal = True
+
+        if 'upSignal' in sc:
+            if sc["upSignal"] == "true":
+                show_upsignal = True
+
+        if show_downsignal == False and show_upsignal == False:
+            continue
+
+        step = 0
+
+        for step in range(0, 65):
+            # print(step)
+            draw.rectangle((0, 0, 16, 32), fill='black')
+
+            draw.line([(x, y+(MATRIX_WIDTH-step))
+                       for (x, y) in DOWN_LINES], fill=line_color)
+
+            draw.line([(x, y-(MATRIX_WIDTH-step))
+                       for (x, y) in UP_LINES], fill=line_color)
+            rotated_image = image.rotate(270, expand=True)
+            matrix.SetImage(rotated_image, unsafe=False)
+            time.sleep(0.05)
