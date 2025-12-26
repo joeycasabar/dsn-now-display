@@ -14,7 +14,7 @@ filename = 'dsn.xml'
 PATTERN_HEIGHT = 64
 MATRIX_WIDTH = 32
 
-LINE_BRIGHTNESS = 64
+LINE_BRIGHTNESS = 255
 
 UP_LINES = [
     (1, 1),
@@ -60,7 +60,9 @@ FAST_DELAY = 0.01
 SLOW_DELAY = 0.1
 SLOW_POS = 10
 
-TEXT_BRIGHTNESS = 63
+TEXT_BRIGHTNESS = 255
+
+FADE_MULT = 16
 
 options = RGBMatrixOptions()
 
@@ -155,9 +157,11 @@ while True:
         for step in range(0, 1+MATRIX_WIDTH+PATTERN_HEIGHT):
             # print(step)
             if step < 16:
-                line_color = (step*4, step*4, step*4)
+                line_color = (step * FADE_MULT, step *
+                              FADE_MULT, step * FADE_MULT)
             elif step > 81:
-                line_color = ((97-step)*4, (97-step)*4, (97-step)*4)
+                line_color = ((97-step) * FADE_MULT, (97-step)
+                              * FADE_MULT, (97-step) * FADE_MULT)
             else:
                 line_color = (LINE_BRIGHTNESS,
                               LINE_BRIGHTNESS, LINE_BRIGHTNESS)
