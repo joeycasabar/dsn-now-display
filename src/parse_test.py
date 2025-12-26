@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 import time
 
+import dsn_util
+
 import json
 
 runtime = int(time.time())
@@ -14,30 +16,11 @@ try:
     # 3. Get the root element
     root = tree.getroot()
 
-    print(f"Root tag: {root.tag}")
+    xml_ts = dsn_util.get_ts_from_xml(filename)
+    print(
+        f"XML Timestamp: {xml_ts}, {runtime-xml_ts} seconds ago")
 
-    for timestamp in root.iter('timestamp'):
-        xml_timestamp = int(timestamp.text)/1000
-        print(
-            f"XML Timestamp: {xml_timestamp}, {runtime-xml_timestamp} seconds ago")
-
-    curr_spacecraft = []
-
-    # 4. Iterate over child elements
-    for dish in root.iter("dish"):
-        for target in dish.iter("target"):
-            curr_spacecraft.append({
-                "abbr": target.attrib["name"],
-                "dish": dish.attrib["name"]
-            })
-            for downsignal in dish.iter("downSignal"):
-                if downsignal.attrib["spacecraft"] == curr_spacecraft[-1]["abbr"]:
-                    curr_spacecraft[-1]["ds_active"] = downsignal.attrib["active"]
-                    curr_spacecraft[-1]["ds_rate"] = downsignal.attrib["dataRate"]
-            for upsignal in dish.iter("upSignal"):
-                if upsignal.attrib["spacecraft"] == curr_spacecraft[-1]["abbr"]:
-                    curr_spacecraft[-1]["us_active"] = upsignal.attrib["active"]
-                    curr_spacecraft[-1]["us_rate"] = upsignal.attrib["dataRate"]
+    curr_spacecraft = dsn_util.parse_tree(root)
 
     for sc in curr_spacecraft:
         print(json.dumps(sc, indent=4))
