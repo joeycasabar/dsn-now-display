@@ -46,21 +46,16 @@ draw = ImageDraw.Draw(image)
 
 next_text = time.time()
 
+step = 0
+
 while True:
-    for x_pos in range(32, -32, -1):
-        draw.rectangle((1, 1, 16, 32), fill='black')
-        draw.line(DOWN_LINES, fill=line_color)
-        rotated_image = image.rotate(270, expand=True)
-        matrix.SetImage(rotated_image, offset_x=x_pos, unsafe=False)
-        # matrix.SetImage(rotated_image, offset_x=x_pos -
-        #                 MATRIX_WIDTH, unsafe=False)
-        time.sleep(0.05)
-    for x_pos in range(-32, 32):
-        print(x_pos)
-        draw.rectangle((1, 1, 16, 32), fill='black')
-        draw.line(UP_LINES, fill=line_color)
-        rotated_image = image.rotate(270, expand=True)
-        matrix.SetImage(rotated_image, offset_x=x_pos, unsafe=False)
-        # matrix.SetImage(rotated_image, offset_x=x_pos +
-        #                 MATRIX_WIDTH, unsafe=False)
-        time.sleep(0.1)
+    print(step)
+    draw.rectangle((0, 0, 16, 32), fill='black')
+    draw.line([(x, y+(MATRIX_WIDTH-step))
+              for (x, y) in DOWN_LINES], fill=line_color)
+    draw.line([(x, y-(MATRIX_WIDTH-step))
+               for (x, y) in UP_LINES], fill=line_color)
+    rotated_image = image.rotate(270, expand=True)
+    matrix.SetImage(rotated_image, unsafe=False)
+    step = 0 if step >= 64 else step + 1
+    time.sleep(0.1)
