@@ -40,3 +40,16 @@ def get_ts_from_xml(filename):
         print(
             f"Error: Could not parse the XML in '{filename}'. Check file format.")
     return timestamp
+
+
+def expand_name(abbr):
+    missions = {
+        "VGR1": "VOYAGER1",
+        "VGR2": "VOYAGER2",
+        "MVN": "MAVEN",
+        "ORX": "OSIRISREX"
+    }
+    if abbr in missions:
+        return missions.get(abbr)
+    else:
+        return abbr
