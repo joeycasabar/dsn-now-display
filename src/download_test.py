@@ -18,10 +18,9 @@ try:
 
 except FileNotFoundError:
     print(f"Error: The file '{filename}' was not found.")
+finally:
+    # Open a local file in binary write mode ('wb') and save the content
+    with open(filename, 'wb') as file:
+        file.write(response.content)
 
-
-# Open a local file in binary write mode ('wb') and save the content
-with open(filename, 'wb') as file:
-    file.write(response.content)
-
-print(f"Successfully saved XML content to {filename}")
+    print(f"Successfully saved XML content to {filename}")
