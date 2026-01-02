@@ -5,8 +5,9 @@ from PIL import Image, ImageDraw, ImageFont
 import time
 from random import randrange
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
-
 import xml.etree.ElementTree as ET
+import os
+
 import dsn_util
 
 filename = 'dsn.xml'
@@ -24,19 +25,13 @@ image = Image.new("RGB", (16, 32), color="green")
 draw = ImageDraw.Draw(image)
 draw.fontmode = '1'
 
-try:
-    # 2. Parse the XML file
-    tree = ET.parse(filename)
-    # 3. Get the root element
-    root = tree.getroot()
+text_color = (
+    dsn_util.TEXT_BRIGHTNESS,
+    dsn_util.TEXT_BRIGHTNESS,
+    dsn_util.TEXT_BRIGHTNESS
+)
 
-    curr_spacecraft = dsn_util.parse_tree(root)
-
-except FileNotFoundError:
-    print(f"Error: The file '{filename}' was not found.")
-except ET.ParseError:
-    print(
-        f"Error: Could not parse the XML in '{filename}'. Check file format.")
+next_update = time.time()
 
 try:
     font = ImageFont.truetype('hd44780.ttf', 6)
@@ -45,10 +40,18 @@ except IOError:
     print("Font not found, using default font.")
     font = ImageFont.load_default(size=8)
 
-text_color = (dsn_util.TEXT_BRIGHTNESS,
-              dsn_util.TEXT_BRIGHTNESS, dsn_util.TEXT_BRIGHTNESS)
-
 while True:
+    curr_time = time.time()
+    if curr_time > next_update:
+        tree = ET.parse(filename)
+
+        root = tree.getroot()
+
+        curr_spacecraft = dsn_util.parse_tree(root)
+        next_update = dsn_util.find_next_5min_epoch()
+
+    print(f"Spacecraft found: {len(curr_spacecraft)}")
+
     for sc in curr_spacecraft:
 
         show_downsignal = False
@@ -104,15 +107,24 @@ while True:
 
         for step in range(0, 1+dsn_util.MATRIX_WIDTH+dsn_util.PATTERN_HEIGHT):
             # print(step)
-            if step < 16:
-                line_color = (step * dsn_util.FADE_MULT, step *
-                              dsn_util.FADE_MULT, step * dsn_util.FADE_MULT)
-            elif step > 81:
-                line_color = ((97-step) * dsn_util.FADE_MULT, (97-step)
-                              * dsn_util.FADE_MULT, (97-step) * dsn_util.FADE_MULT)
+            if step < dsn_util.FADE_LEN:
+                line_color = (
+                    step * dsn_util.FADE_MULT,
+                    step * dsn_util.FADE_MULT,
+                    step * dsn_util.FADE_MULT
+                )
+            elif step > dsn_util.STEP_MAX - dsn_util.FADE_LEN:
+                line_color = (
+                    (dsn_util.STEP_MAX - step) * dsn_util.FADE_MULT,
+                    (dsn_util.STEP_MAX - step) * dsn_util.FADE_MULT,
+                    (dsn_util.STEP_MAX - step) * dsn_util.FADE_MULT
+                )
             else:
-                line_color = (dsn_util.LINE_BRIGHTNESS,
-                              dsn_util.LINE_BRIGHTNESS, dsn_util.LINE_BRIGHTNESS)
+                line_color = (
+                    dsn_util.LINE_BRIGHTNESS,
+                    dsn_util.LINE_BRIGHTNESS,
+                    dsn_util.LINE_BRIGHTNESS
+                )
             draw.rectangle((0, 0, 16, 32), fill='black')
             if show_downsignal:
                 draw.line([(x, y-(dsn_util.PATTERN_HEIGHT-step))
