@@ -1,11 +1,18 @@
 import xml.etree.ElementTree as ET
+import requests
+import os
+import time
+
+DSN_URL = "https://eyes.nasa.gov/dsn/data/dsn.xml"
 
 PATTERN_HEIGHT = 64
 MATRIX_WIDTH = 32
+STEP_MAX = PATTERN_HEIGHT + MATRIX_WIDTH + 1
 
 LINE_BRIGHTNESS = 255
 TEXT_BRIGHTNESS = 255
 FADE_MULT = 16
+FADE_LEN = 16
 
 UP_LINES = [
     (1, 1),
@@ -79,7 +86,7 @@ def get_ts_from_xml(filename):
         # 3. Get the root element
         root = tree.getroot()
 
-        print(f"Root tag: {root.tag}")
+        # print(f"Root tag: {root.tag}")
 
         for timestamp in root.iter('timestamp'):
             timestamp = int(timestamp.text) / 1000.0
@@ -111,3 +118,72 @@ def expand_name(abbr):
         return missions.get(abbr)
     else:
         return abbr
+
+
+def fetch_xml(filename):
+    print("Fetching new XML file")
+    try:
+        response = requests.get(DSN_URL)
+
+        # Ensure the request was successful
+        response.raise_for_status()
+
+        xml_ts = f"{get_ts_from_xml(filename):.0f}"
+        os.rename(filename, 'dsn_' + xml_ts + '.xml')
+
+    except FileNotFoundError:
+        print(f"Error: The file '{filename}' was not found.")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+    finally:
+        # Open a local file in binary write mode ('wb') and save the content
+        try:
+            with open(filename, 'wb') as file:
+                file.write(response.content)
+
+            print(f"Successfully saved XML content to {filename}")
+        except:
+            print("Error writing XML file")
+
+
+def get_spacecraft_list():
+    print("Fetching spacecraft list directly")
+    try:
+        response = requests.get(DSN_URL)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+    xml_string = response.content
+
+    try:
+        root = ET.fromstring(xml_string)
+        sc_list = parse_tree(root)
+    except ET.ParseError as e:
+        print(f"Error parsing XML: {e}")
+        return None
+    return sc_list
+
+
+def find_next_5min_epoch(timestamp=None):
+    """
+    Calculates the Unix timestamp of the next 5-minute mark.
+
+    Args:
+        timestamp (float, optional): A Unix timestamp (seconds since epoch).
+                                     If None, uses the current time.
+
+    Returns:
+        datetime: The datetime object corresponding to the next 5-minute mark.
+    """
+    if timestamp is None:
+        timestamp = time.time()
+
+    interval_seconds = 300  # 5 minutes * 60 seconds
+
+    # Calculate the timestamp of the next 5-minute mark
+    # timestamp % interval_seconds gives time past the last interval
+    # (interval_seconds - timestamp % interval_seconds) gives time until the next interval
+    next_timestamp_epoch = timestamp + \
+        (interval_seconds - timestamp % interval_seconds)
+
+    return next_timestamp_epoch
