@@ -1,0 +1,16 @@
+[Unit]
+Description=DSN Display Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=$RGBMATRIX_WORKING_DIR
+ExecStart=$RGBMATRIX_VENV_DIR/bin/python3 $RGBMATRIX_WORKING_DIR/full_demo.py
+Restart=always
+# Optional: view output with journalctl -u my-app.service
+StandardOutput=journal
+StandardError=journal
+#SyslogIdentifier=rgbmatrix
+
+[Install]
+WantedBy=multi-user.target

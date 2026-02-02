@@ -1,0 +1,8 @@
+[Unit]
+Description=Update dsn.xml file
+
+[Service]
+Type=oneshot
+WorkingDirectory=$RGBMATRIX_WORKING_DIR
+ExecStart=$RGBMATRIX_VENV_DIR/bin/python3 $RGBMATRIX_WORKING_DIR/download_test.py
+User=root
