@@ -1,8 +1,8 @@
 [Unit]
-Description=Runs my custom service every 5 minutes with a 1-minute offset
+Description=Runs dsn.xml update every 5 minutes with a 1-minute offset
 
 [Timer]
-# Defines the schedule: every 5 minutes past the hour, starting at the 4th minute (..., 4, 9, 14, ...)
+# run every 5 minutes past the hour, starting at the 4th minute (..., 4, 9, 14, ...)
 OnCalendar=*:4/5
 # Ensures the timer runs shortly after boot if the scheduled time has passed
 Persistent=true
